@@ -1,27 +1,32 @@
 package nats
 
 import (
-	"errors"
 	"github.com/nats-io/nats.go"
 	"github.com/slink-go/logging"
 	"github.com/slink-go/messaging/pkg/api"
 )
 
 type NatMessageBus struct {
-	client   Client
-	encoding api.Encoding
-	logger   logging.Logger
+	client Client
+	logger logging.Logger
 }
 
-func (b *NatMessageBus) Publish(topic string, message api.Message) error {
-	return b.PublishEncoded(topic, message, b.encoding)
-}
-
-func (b *NatMessageBus) PublishEncoded(topic string, message api.Message, encoding api.Encoding) error {
-	if b.client.conn == nil {
-		return errors.New("nats connection is nil")
+func (b *NatMessageBus) Publish(topic string, message api.Message, encoding ...api.Encoding) error {
+	if encoding != nil && len(encoding) > 0 {
+		enc, err := GetEncoder(encoding[0])
+		if err != nil {
+			return err
+		}
+		return b.publish(topic, message, enc)
 	}
-	msg, err := b.client.encode(topic, message, encoding)
+	return b.publish(topic, message, b.client.encoder)
+}
+
+func (b *NatMessageBus) publish(topic string, message api.Message, encoder Encoder) error {
+	if err := validateClient(b.client); err != nil {
+		return err
+	}
+	msg, err := encoder.Encode(topic, message)
 	if err != nil {
 		return err
 	}
@@ -29,13 +34,18 @@ func (b *NatMessageBus) PublishEncoded(topic string, message api.Message, encodi
 }
 
 func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, options ...api.SubscribeOption) error {
-	b.client.conn.Subscribe(topic, func(msg *nats.Msg) {
+	if err := validateClient(b.client); err != nil {
+		return err
+	}
+	_, err := b.client.conn.Subscribe(topic, func(msg *nats.Msg) {
 		m, e := b.client.decode(msg)
 		if e != nil {
 			b.logger.Warning("could not decode incoming message: %v", e)
 			return
 		}
-		channel <- m
+		if shouldAcceptMessage(m, options...) {
+			channel <- m
+		}
 	})
-	return nil
+	return err
 }

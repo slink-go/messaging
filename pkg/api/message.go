@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -34,10 +33,12 @@ func (m *BasicMessage) GetTimestamp() time.Time {
 func (m *BasicMessage) GetData() interface{} {
 	return nil
 }
+
 func (m *BasicMessage) String() string {
-	v, e := /*easy*/ json.Marshal(m)
-	if e != nil {
-		return "{}"
-	}
-	return string(v)
+	//v, e := /*easy*/ json.Marshal(m)
+	//if e != nil {
+	//	return "{}"
+	//}
+	//return string(v)
+	return m.Kind + "{ timestamp=\"" + m.Timestamp.String() + "\" }"
 }

@@ -6,6 +6,7 @@ type Encoding int
 
 const (
 	EncodingUndefined Encoding = iota
+	EncodingString
 	EncodingJson
 	EncodingGob
 	EncodingMsgPack
@@ -13,6 +14,8 @@ const (
 
 func (e Encoding) String() string {
 	switch e {
+	case EncodingString:
+		return "string"
 	case EncodingJson:
 		return "json"
 	case EncodingMsgPack:
@@ -24,6 +27,8 @@ func (e Encoding) String() string {
 }
 func ParseEncoding(input string) Encoding {
 	switch strings.ToLower(input) {
+	case "string":
+		return EncodingString
 	case "json":
 		return EncodingJson
 	case "msgpack":

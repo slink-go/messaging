@@ -9,16 +9,16 @@ import (
 
 // region - message handlers
 
-type MessageHandlerFunc func(msg *nats.Msg) (api.Message, error)
-type MessageHandlers map[string]MessageHandlerFunc
+type MessageDecoderFunc func(msg *nats.Msg) (api.Message, error)
+type MessageHandlers map[string]MessageDecoderFunc
 
-type MessageHandler struct {
+type MessageDecoder struct {
 	MessageType string
 	Encoding    api.Encoding
-	Handler     MessageHandlerFunc
+	Handler     MessageDecoderFunc
 }
 
-func (h *MessageHandler) key() string {
+func (h *MessageDecoder) key() string {
 	return h.Encoding.String() + ":" + h.MessageType
 }
 
@@ -34,19 +34,39 @@ type Client struct {
 	decoder         Decoder
 }
 
-func NewNatsClient() Client {
+func NewNatsClient(opts ...interface{}) Client {
+	l := logging.GetLogger("nats-client")
 	url := os.Getenv("NATS_URL")
 	if url == "" {
 		url = nats.DefaultURL
-		logging.GetLogger("nats-client").Info("using default Nats URL: %s", url)
+		l.Info("using default Nats URL: %s", url)
 	}
+	enc := getDefaultEncoder(api.EncodingJson, opts...)
 	return Client{
 		url:             url,
-		logger:          logging.GetLogger("nats-client"),
+		logger:          l,
 		messageHandlers: make(MessageHandlers),
-		encoder:         Encoder{},
-		decoder:         Decoder{},
+		encoder:         enc,
 	}
+}
+func getDefaultEncoder(defaultEncoding api.Encoding, opts ...interface{}) Encoder {
+	if opts != nil || len(opts) > 0 {
+		v, ok := opts[0].(api.Encoding)
+		if ok {
+			if enc := getEncoder(v); enc != nil {
+				return enc
+			}
+		}
+	}
+	return getEncoder(defaultEncoding)
+}
+func getEncoder(encoding api.Encoding) Encoder {
+	enc, err := GetEncoder(encoding)
+	if err != nil {
+		logging.GetLogger("nats-client").Warning("could not get default encoder: %v", err)
+		return nil
+	}
+	return enc
 }
 
 func (c *Client) Connect() error {
@@ -66,12 +86,12 @@ func (c *Client) Close() {
 	}
 }
 
-func (c *Client) AddMessageHandler(handler MessageHandler) {
+func (c *Client) AddMessageDecoder(handler MessageDecoder) {
 	c.messageHandlers[handler.key()] = handler.Handler
 }
 
 func (c *Client) encode(topic string, message api.Message, encoding api.Encoding) (*nats.Msg, error) {
-	return c.encoder.Encode(topic, message, encoding)
+	return c.encoder.Encode(topic, message)
 }
 
 func (c *Client) decode(msg *nats.Msg) (api.Message, error) {

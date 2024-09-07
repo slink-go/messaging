@@ -8,15 +8,17 @@ import (
 	"time"
 )
 
+const topic = "q1"
+
 func main() {
 
 	os.Setenv("GO_ENV", "dev")
 
-	c := nats.NewNatsClient()
+	c := nats.NewNatsClient(api.EncodingJson)
 	c.Connect()
 	defer c.Close()
 
-	b := nats.NewMessageBus(c, api.EncodingMsgPack)
+	b := nats.NewMessageBus(c)
 	for {
 		time.Sleep(2 * time.Second)
 		publish(b)
@@ -24,19 +26,11 @@ func main() {
 
 }
 
-func publishEncoded(b api.MessageBus, encoding api.Encoding) {
-	m := api.NewBasicMessage()
-	if e := b.PublishEncoded("test", m, encoding); e != nil {
-		logging.GetLogger("publisher").Warning("publish error: %v", e)
-	} else {
-		logging.GetLogger("publisher").Info("new message published (as %s): %v", encoding, m)
-	}
-}
 func publish(b api.MessageBus) {
 	m := api.NewBasicMessage()
-	if e := b.Publish("test", m); e != nil {
-		logging.GetLogger("publisher").Warning("publish error: %v", e)
+	if e := b.Publish(topic, m); e != nil {
+		logging.GetLogger("bus publisher").Warning("publish error: %v", e)
 	} else {
-		logging.GetLogger("publisher").Info("new message published: %v", m)
+		logging.GetLogger("bus publisher").Info("new message published: %v", m)
 	}
 }

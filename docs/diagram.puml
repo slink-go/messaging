@@ -1,37 +1,44 @@
 @startuml
 
-interface Message {
-    GetId() string
-    GetTimestamp() string
+
+package api {
+    class BasicMessage {
+    }
+
+    interface Message {
+        GetId() string
+        GetTimestamp() string
+    }
+
+    interface MessageBus {
+        Publish(string, Message)
+        Subscribe(string, chan Message)
+    }
+
+    interface MessageStream {
+        Publish(string, Message)
+        Subscribe(string, chan Message)
+    }
 }
 
-interface MessageBus {
-    Publish(string, Message)
-    Subscribe(string, chan Message)
+package nats {
+    class NatsMessageBus {
+    }
+    class NatsMessageStream {
+    }
+    class NatsClient {
+    }
+    object NatsFactory {
+    }
+    class Decoder {
+    }
+    class Encoder {
+    }
 }
 
-interface MessageStream {
-    Publish(string, Message)
-    Subscribe(string, chan Message)
-}
+Encoder <-- NatsClient
+Decoder <-- NatsClient
 
-class Decoder {
-}
-
-class Encoder {
-}
-
-class NatsMessageBus {
-}
-
-class NatsMessageStream {
-}
-
-class NatsClient {
-}
-
-class NatsFactory {
-}
 
 NatsFactory --> NatsMessageBus
 NatsFactory --> NatsMessageStream
@@ -41,13 +48,12 @@ MessageStream --> Message
 
 NatsMessageBus --|> MessageBus
 NatsMessageBus --> Message
-NatsMessageBus -> NatsClient
+NatsMessageBus --> NatsClient
 
 NatsMessageStream --> Message
 NatsMessageStream --|> MessageStream
 NatsMessageStream -> NatsClient
 
-NatsClient --> Encoder
-NatsClient --> Decoder
+Message <|-- BasicMessage
 
 @enduml

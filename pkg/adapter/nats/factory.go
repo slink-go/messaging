@@ -5,28 +5,28 @@ import (
 	"github.com/slink-go/messaging/pkg/api"
 )
 
-func NewMessageBus(client Client, opts ...interface{}) api.MessageBus {
+func NewMessageBus(client Client) api.MessageBus {
 	return &NatMessageBus{
-		client:   client,
-		encoding: getDefaultEncoding(opts...),
-		logger:   logging.GetLogger("nats-message-bus"),
+		client: client,
+		logger: logging.GetLogger("nats-message-bus"),
 	}
 }
-func NewMessageStream(client Client, opts ...interface{}) api.MessageStream {
-	return &NatMessageStream{
-		client:   client,
-		encoding: getDefaultEncoding(opts...),
-		logger:   logging.GetLogger("nats-message-stream"),
-	}
-}
+func NewMessageStream(client Client, config api.StreamConfig) api.MessageStream {
 
-func getDefaultEncoding(opts ...interface{}) api.Encoding {
-	encoding := api.EncodingJson
-	if opts != nil || len(opts) > 0 {
-		v, ok := opts[0].(api.Encoding)
-		if ok {
-			encoding = v
-		}
+	var defaultName = "default"
+	if config.Name == "" {
+		config.Name = defaultName
 	}
-	return encoding
+
+	var defaultSubjects = []string{defaultName}
+	if config.Subjects == nil || len(config.Subjects) == 0 {
+		config.Subjects = defaultSubjects
+	}
+
+	return &NatMessageStream{
+		client: client,
+		config: config,
+		logger: logging.GetLogger("nats-message-stream"),
+	}
+
 }

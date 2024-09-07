@@ -15,7 +15,9 @@ import (
 	"syscall"
 )
 
-func gobBaseMessageDecoder(msg *nats.Msg) (api.Message, error) {
+const topic = "q1"
+
+func gobBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
 	r := bytes.NewReader(msg.Data)
 	var m api.BasicMessage
 	dec := gob.NewDecoder(r)
@@ -25,12 +27,12 @@ func gobBaseMessageDecoder(msg *nats.Msg) (api.Message, error) {
 	}
 	return &m, nil
 }
-func msgPackBaseMessageDecoder(msg *nats.Msg) (api.Message, error) {
+func msgPackBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
 	var v api.BasicMessage
 	err := msgpack.Unmarshal(msg.Data, &v)
 	return &v, err
 }
-func jsonBaseMessageDecoder(msg *nats.Msg) (api.Message, error) {
+func jsonBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
 	var bm api.BasicMessage
 	err := json.Unmarshal(msg.Data, &bm)
 	if err != nil {
@@ -42,22 +44,22 @@ func jsonBaseMessageDecoder(msg *nats.Msg) (api.Message, error) {
 func main() {
 
 	os.Setenv("GO_ENV", "dev")
-	c := adapter.NewNatsClient()
+	c := adapter.NewNatsClient(api.EncodingString)
 
-	c.AddMessageHandler(adapter.MessageHandler{
+	c.AddMessageDecoder(adapter.MessageDecoder{
 		MessageType: "BasicMessage",
 		Encoding:    api.EncodingJson,
-		Handler:     jsonBaseMessageDecoder,
+		Handler:     jsonBasicMessageDecoder,
 	})
-	c.AddMessageHandler(adapter.MessageHandler{
+	c.AddMessageDecoder(adapter.MessageDecoder{
 		MessageType: "BasicMessage",
 		Encoding:    api.EncodingMsgPack,
-		Handler:     msgPackBaseMessageDecoder,
+		Handler:     msgPackBasicMessageDecoder,
 	})
-	c.AddMessageHandler(adapter.MessageHandler{
+	c.AddMessageDecoder(adapter.MessageDecoder{
 		MessageType: "BasicMessage",
 		Encoding:    api.EncodingGob,
-		Handler:     gobBaseMessageDecoder,
+		Handler:     gobBasicMessageDecoder,
 	})
 
 	c.Connect()
@@ -67,7 +69,7 @@ func main() {
 
 	messages := make(chan api.Message)
 
-	b.Subscribe("test", messages)
+	b.Subscribe(topic, messages)
 
 	go func() {
 		for msg := range messages {

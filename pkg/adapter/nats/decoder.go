@@ -15,9 +15,6 @@ func (d *Decoder) Decode(msg *nats.Msg, decoders MessageHandlers) (api.Message, 
 		return nil, errors.New("message is nil")
 	}
 	encoding := api.ParseEncoding(msg.Header.Get(msgEncodingHeader))
-	if encoding == api.EncodingUndefined {
-		encoding = api.EncodingJson
-	}
 
 	t := msg.Header.Get(msgTypeHeader)
 	if t == "" {
@@ -29,7 +26,7 @@ func (d *Decoder) Decode(msg *nats.Msg, decoders MessageHandlers) (api.Message, 
 		key := encoding.String() + ":" + t
 		dec, ok := decoders[key]
 		if !ok {
-			return nil, fmt.Errorf("no decoder specified for message type %s", t)
+			return nil, fmt.Errorf("no '%s' decoder specified for message type '%s'", encoding, t)
 		}
 		return dec(msg)
 	}
