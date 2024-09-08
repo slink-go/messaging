@@ -33,11 +33,11 @@ func (b *NatMessageBus) publish(topic string, message api.Message, encoder Encod
 	return b.client.conn.PublishMsg(msg)
 }
 
-func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, options ...api.SubscribeOption) error {
+func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, options ...api.SubscribeOption) (func(), error) {
 	if err := validateClient(b.client); err != nil {
-		return err
+		return nil, err
 	}
-	_, err := b.client.conn.Subscribe(topic, func(msg *nats.Msg) {
+	sub, err := b.client.conn.Subscribe(topic, func(msg *nats.Msg) {
 		m, e := b.client.decode(msg)
 		if e != nil {
 			b.logger.Warning("could not decode incoming message: %v", e)
@@ -47,5 +47,9 @@ func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, option
 			channel <- m
 		}
 	})
-	return err
+	closer := func() {
+		b.logger.Info("bus unsubscribe from %s", topic)
+		_ = sub.Unsubscribe()
+	}
+	return closer, err
 }

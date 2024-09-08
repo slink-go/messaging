@@ -1,5 +1,7 @@
 package nats
 
+// https://canopas.com/how-to-do-data-serialization-and-deserialization-in-golang-90c80b0b6d58
+
 import (
 	"bytes"
 	"encoding/gob"

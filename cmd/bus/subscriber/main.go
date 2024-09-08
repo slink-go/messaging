@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 const topic = "q1"
@@ -67,15 +68,37 @@ func main() {
 
 	b := adapter.NewMessageBus(c)
 
-	messages := make(chan api.Message)
+	messages1 := make(chan api.Message)
+	messages2 := make(chan api.Message)
 
-	b.Subscribe(topic, messages)
+	closer1, err := b.Subscribe(topic, messages1)
+	if err != nil {
+		print(err)
+	}
+	closer2, err := b.Subscribe(topic, messages2)
+	if err != nil {
+		print(err)
+	}
 
 	go func() {
-		for msg := range messages {
-			logging.GetLogger("subscriber").Info("received message: %s", msg)
+		for msg := range messages1 {
+			logging.GetLogger("subscriber-1").Info("received message: %s", msg)
 		}
 	}()
+
+	go func() {
+		for msg := range messages2 {
+			logging.GetLogger("subscriber-2").Info("received message: %s", msg)
+		}
+	}()
+
+	time.Sleep(7 * time.Second)
+	closer1()
+	close(messages1)
+
+	time.Sleep(7 * time.Second)
+	closer2()
+	close(messages2)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

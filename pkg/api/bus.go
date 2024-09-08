@@ -7,5 +7,5 @@ type MessageBus interface {
 
 	Publish(topic string, message Message, encoding ...Encoding) error
 
-	Subscribe(topic string, channel chan Message, options ...SubscribeOption) error
+	Subscribe(topic string, channel chan Message, options ...SubscribeOption) (func(), error)
 }

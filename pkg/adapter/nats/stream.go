@@ -82,18 +82,18 @@ func (s *NatMessageStream) publish(subject string, message api.Message, encoder 
 	return err
 }
 
-func (s *NatMessageStream) Subscribe(subject string, channel chan api.Message, options ...api.SubscribeOption) error {
+func (s *NatMessageStream) Subscribe(subject string, channel chan api.Message, options ...api.SubscribeOption) (func(), error) {
 	if err := validateClient(s.client); err != nil {
-		return err
+		return nil, err
 	}
 
 	// get nats JetStream context
 	jsctx, err := s.getJsContext()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = jsctx.Subscribe(subject, func(msg *nats.Msg) {
+	sub, err := jsctx.Subscribe(subject, func(msg *nats.Msg) {
 		m, e := s.client.decode(msg)
 		if e != nil {
 			s.logger.Warning("could not decode incoming message: %v", e)
@@ -109,7 +109,12 @@ func (s *NatMessageStream) Subscribe(subject string, channel chan api.Message, o
 		nats.DeliverAll(),
 	)
 
-	return err
+	closer := func() {
+		s.logger.Info("stream unsubscribe from %s", subject)
+		_ = sub.Unsubscribe()
+	}
+
+	return closer, err
 }
 
 func (s *NatMessageStream) getJsContext() (nats.JetStreamContext, error) {
