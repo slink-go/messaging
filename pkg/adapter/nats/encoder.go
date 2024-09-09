@@ -98,7 +98,7 @@ func (j *MsgPackEncoder) Encode(topic string, message api.Message) (*nats.Msg, e
 type GobEncoder struct{}
 
 func (j *GobEncoder) Encode(topic string, message api.Message) (*nats.Msg, error) {
-	msg := createMessage(topic, api.EncodingMsgPack, message)
+	msg := createMessage(topic, api.EncodingGob, message)
 	var buff bytes.Buffer
 	enc := gob.NewEncoder(&buff)
 	err := enc.Encode(message)

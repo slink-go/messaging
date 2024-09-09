@@ -16,7 +16,7 @@ func main() {
 
 	os.Setenv("GO_ENV", "dev")
 
-	c := nats.NewNatsClient(api.EncodingJson)
+	c := nats.NewNatsClient(api.EncodingGob)
 	c.Connect()
 	defer c.Close()
 
@@ -32,8 +32,16 @@ var idx int
 
 func publish(b api.MessageBus) {
 	var m api.Message
-	if rand.Intn(100) > 50 {
+	n := rand.Intn(100)
+	if n > 66 {
 		m = api.NewBasicMessage()
+	} else if n > 33 {
+		idx += 1
+		obj := make(map[string]any)
+		obj["key"] = "item"
+		obj["value"] = fmt.Sprintf("value #%d", idx)
+		obj["index"] = idx
+		m = api.NewObjectMessage(obj)
 	} else {
 		idx += 1
 		m = api.NewTextMessage(fmt.Sprintf("message #%d", idx))

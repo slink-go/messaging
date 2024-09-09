@@ -83,6 +83,22 @@ func NewNatsClient(opts ...interface{}) Client {
 		Handler:     api.GobTextMessageDecoder,
 	})
 
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "ObjectMessage",
+		Encoding:    api.EncodingJson,
+		Handler:     api.JsonObjectMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "ObjectMessage",
+		Encoding:    api.EncodingMsgPack,
+		Handler:     api.MsgPackObjectMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "ObjectMessage",
+		Encoding:    api.EncodingGob,
+		Handler:     api.GobObjectMessageDecoder,
+	})
+
 	return client
 }
 func getDefaultEncoder(defaultEncoding api.Encoding, opts ...interface{}) Encoder {
