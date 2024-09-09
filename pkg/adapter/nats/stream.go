@@ -1,6 +1,7 @@
 package nats
 
 import (
+	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/slink-go/logging"
 	"github.com/slink-go/messaging/pkg/api"
@@ -101,7 +102,9 @@ func (s *NatMessageStream) Subscribe(subject string, channel chan api.Message, o
 		}
 		if shouldAcceptMessage(m, options...) {
 			//s.logger.Trace("new message received in %s: %v", msg.Subject, m)
-			channel <- m
+			if err := s.send(channel, m); err != nil {
+				s.logger.Warning("could not send message: %v", err)
+			}
 		}
 	},
 		// опции подписки на stream
@@ -144,4 +147,14 @@ func (s *NatMessageStream) createStream(jetStream nats.JetStreamContext) error {
 		}
 	}
 	return nil
+}
+
+func (s *NatMessageStream) send(channel chan api.Message, message api.Message) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("message send error: %v", r)
+		}
+	}()
+	channel <- message
+	return
 }

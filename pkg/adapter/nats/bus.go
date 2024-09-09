@@ -1,6 +1,7 @@
 package nats
 
 import (
+	"fmt"
 	"github.com/nats-io/nats.go"
 	"github.com/slink-go/logging"
 	"github.com/slink-go/messaging/pkg/api"
@@ -44,7 +45,9 @@ func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, option
 			return
 		}
 		if shouldAcceptMessage(m, options...) {
-			channel <- m
+			if err := b.send(channel, m); err != nil {
+				b.logger.Warning("could not send message: %v", err)
+			}
 		}
 	})
 	closer := func() {
@@ -52,4 +55,14 @@ func (b *NatMessageBus) Subscribe(topic string, channel chan api.Message, option
 		_ = sub.Unsubscribe()
 	}
 	return closer, err
+}
+
+func (b *NatMessageBus) send(channel chan api.Message, message api.Message) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("message send error: %v", r)
+		}
+	}()
+	channel <- message
+	return
 }
