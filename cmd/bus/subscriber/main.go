@@ -1,14 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
-	"encoding/json"
-	"github.com/nats-io/nats.go"
 	"github.com/slink-go/logging"
 	adapter "github.com/slink-go/messaging/pkg/adapter/nats"
 	"github.com/slink-go/messaging/pkg/api"
-	"github.com/vmihailenco/msgpack/v5"
 	"os"
 	"os/signal"
 	"sync"
@@ -18,50 +13,42 @@ import (
 
 const topic = "q1"
 
-func gobBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
-	r := bytes.NewReader(msg.Data)
-	var m api.BasicMessage
-	dec := gob.NewDecoder(r)
-	err := dec.Decode(&m)
-	if err != nil {
-		return nil, err
-	}
-	return &m, nil
-}
-func msgPackBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
-	var v api.BasicMessage
-	err := msgpack.Unmarshal(msg.Data, &v)
-	return &v, err
-}
-func jsonBasicMessageDecoder(msg *nats.Msg) (api.Message, error) {
-	var bm api.BasicMessage
-	err := json.Unmarshal(msg.Data, &bm)
-	if err != nil {
-		return nil, err
-	}
-	return &bm, nil
-}
-
 func main() {
 
 	os.Setenv("GO_ENV", "dev")
 	c := adapter.NewNatsClient(api.EncodingString)
 
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingJson,
-		Handler:     jsonBasicMessageDecoder,
-	})
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingMsgPack,
-		Handler:     msgPackBasicMessageDecoder,
-	})
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingGob,
-		Handler:     gobBasicMessageDecoder,
-	})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingJson,
+	//	Handler:     api.JsonBasicMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingMsgPack,
+	//	Handler:     api.MsgPackBasicMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingGob,
+	//	Handler:     api.GobBasicMessageDecoder,
+	//})
+	//
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "TextMessage",
+	//	Encoding:    api.EncodingJson,
+	//	Handler:     api.JsonTextMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "TextMessage",
+	//	Encoding:    api.EncodingMsgPack,
+	//	Handler:     api.MsgPackTextMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "TextMessage",
+	//	Encoding:    api.EncodingGob,
+	//	Handler:     api.GobTextMessageDecoder,
+	//})
 
 	c.Connect()
 	defer c.Close()
@@ -75,7 +62,7 @@ func main() {
 	if err != nil {
 		print(err)
 	}
-	closer2, err := b.Subscribe(topic, messages2)
+	_, err = b.Subscribe(topic, messages2)
 	if err != nil {
 		print(err)
 	}
@@ -95,10 +82,6 @@ func main() {
 	time.Sleep(7 * time.Second)
 	closer1()
 	close(messages1)
-
-	time.Sleep(7 * time.Second)
-	closer2()
-	close(messages2)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

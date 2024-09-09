@@ -46,21 +46,21 @@ func main() {
 	os.Setenv("GO_ENV", "dev")
 	c := adapter.NewNatsClient(api.EncodingString)
 
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingJson,
-		Handler:     jsonBasicMessageDecoder,
-	})
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingMsgPack,
-		Handler:     msgPackBasicMessageDecoder,
-	})
-	c.AddMessageDecoder(adapter.MessageDecoder{
-		MessageType: "BasicMessage",
-		Encoding:    api.EncodingGob,
-		Handler:     gobBasicMessageDecoder,
-	})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingJson,
+	//	Handler:     jsonBasicMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingMsgPack,
+	//	Handler:     msgPackBasicMessageDecoder,
+	//})
+	//c.AddMessageDecoder(adapter.MessageDecoder{
+	//	MessageType: "BasicMessage",
+	//	Encoding:    api.EncodingGob,
+	//	Handler:     gobBasicMessageDecoder,
+	//})
 
 	c.Connect()
 	defer c.Close()

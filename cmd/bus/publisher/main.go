@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/slink-go/logging"
 	"github.com/slink-go/messaging/pkg/adapter/nats"
 	"github.com/slink-go/messaging/pkg/api"
+	"math/rand"
 	"os"
 	"time"
 )
 
-const topic = "q1"
+var topics = []string{"q1", "system-bus", "event-bus"}
 
 func main() {
 
@@ -26,11 +28,21 @@ func main() {
 
 }
 
+var idx int
+
 func publish(b api.MessageBus) {
-	m := api.NewBasicMessage()
-	if e := b.Publish(topic, m); e != nil {
-		logging.GetLogger("bus publisher").Warning("publish error: %v", e)
+	var m api.Message
+	if rand.Intn(100) > 50 {
+		m = api.NewBasicMessage()
 	} else {
-		logging.GetLogger("bus publisher").Info("new message published: %v", m)
+		idx += 1
+		m = api.NewTextMessage(fmt.Sprintf("message #%d", idx))
+	}
+	for _, topic := range topics {
+		if e := b.Publish(topic, m); e != nil {
+			logging.GetLogger("bus publisher").Warning("publish error: %v", e)
+		} else {
+			logging.GetLogger("bus publisher").Info("new message published: %v", m)
+		}
 	}
 }

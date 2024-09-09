@@ -14,7 +14,7 @@ func main() {
 
 	os.Setenv("GO_ENV", "dev")
 
-	c := nats.NewNatsClient(api.EncodingMsgPack)
+	c := nats.NewNatsClient(api.EncodingJson)
 	c.Connect()
 	defer c.Close()
 
@@ -25,9 +25,9 @@ func main() {
 	}
 
 	s := nats.NewMessageStream(c, streamConfig)
-	s.Delete()
+	//s.Delete()
 	//s.Create()
-	//s.Flush()
+	s.Flush()
 	for {
 		time.Sleep(2 * time.Second)
 		publish(s, "subject-1")

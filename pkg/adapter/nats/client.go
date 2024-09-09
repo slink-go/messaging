@@ -42,12 +42,48 @@ func NewNatsClient(opts ...interface{}) Client {
 		l.Info("using default Nats URL: %s", url)
 	}
 	enc := getDefaultEncoder(api.EncodingJson, opts...)
-	return Client{
+	client := Client{
 		url:             url,
 		logger:          l,
 		messageHandlers: make(MessageHandlers),
 		encoder:         enc,
 	}
+
+	// add decoders for built-in messages
+
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "BasicMessage",
+		Encoding:    api.EncodingJson,
+		Handler:     api.JsonBasicMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "BasicMessage",
+		Encoding:    api.EncodingMsgPack,
+		Handler:     api.MsgPackBasicMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "BasicMessage",
+		Encoding:    api.EncodingGob,
+		Handler:     api.GobBasicMessageDecoder,
+	})
+
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "TextMessage",
+		Encoding:    api.EncodingJson,
+		Handler:     api.JsonTextMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "TextMessage",
+		Encoding:    api.EncodingMsgPack,
+		Handler:     api.MsgPackTextMessageDecoder,
+	})
+	client.AddMessageDecoder(MessageDecoder{
+		MessageType: "TextMessage",
+		Encoding:    api.EncodingGob,
+		Handler:     api.GobTextMessageDecoder,
+	})
+
+	return client
 }
 func getDefaultEncoder(defaultEncoding api.Encoding, opts ...interface{}) Encoder {
 	if opts != nil || len(opts) > 0 {
