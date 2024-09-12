@@ -21,6 +21,7 @@ type Message interface {
 func NewBasicMessage() Message {
 	return &BasicMessage{
 		Kind:      "BasicMessage",
+		Source:    "",
 		Timestamp: time.Now(),
 	}
 }
@@ -29,11 +30,15 @@ type BasicMessage struct {
 	_msgpack struct{} `msgpack:",as_array"`
 
 	Kind      string    `json:"type",msgpack:"-"`
+	Source    string    `json:"source",msgpack:"-"`
 	Timestamp time.Time `json:"timestamp",msgpack:"timestamp"`
 }
 
 func (m *BasicMessage) GetKind() string {
 	return "BasicMessage"
+}
+func (m *BasicMessage) GetSource() string {
+	return m.Source
 }
 func (m *BasicMessage) GetTimestamp() time.Time {
 	return m.Timestamp
@@ -48,7 +53,7 @@ func (m *BasicMessage) String() string {
 	//	return "{}"
 	//}
 	//return string(v)
-	return fmt.Sprintf("{ kind=\"%s\", timestamp=\"%s\"}", m.Kind, m.Timestamp)
+	return fmt.Sprintf("{ kind=\"%s\", src=\"%s\", timestamp=\"%s\"}", m.Kind, m.Source, m.Timestamp)
 }
 
 // region ~ decoders
@@ -61,20 +66,23 @@ func GobBasicMessageDecoder(msg *nats.Msg) (Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	m.Source = msg.Subject
 	return &m, nil
 }
 func MsgPackBasicMessageDecoder(msg *nats.Msg) (Message, error) {
-	var v BasicMessage
-	err := msgpack.Unmarshal(msg.Data, &v)
-	return &v, err
+	var m BasicMessage
+	err := msgpack.Unmarshal(msg.Data, &m)
+	m.Source = msg.Subject
+	return &m, err
 }
 func JsonBasicMessageDecoder(msg *nats.Msg) (Message, error) {
-	var bm BasicMessage
-	err := json.Unmarshal(msg.Data, &bm)
+	var m BasicMessage
+	err := json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return nil, err
 	}
-	return &bm, nil
+	m.Source = msg.Subject
+	return &m, nil
 }
 
 // endregion
@@ -84,22 +92,27 @@ func JsonBasicMessageDecoder(msg *nats.Msg) (Message, error) {
 
 func NewTextMessage(message string) Message {
 	return &TextMessage{
-		Kind:      "TextMessage",
-		Timestamp: time.Now(),
-		Text:      message,
+		BasicMessage: BasicMessage{
+			Kind:      "TextMessage",
+			Source:    "",
+			Timestamp: time.Now(),
+		},
+		Text: message,
 	}
 }
 
 type TextMessage struct {
 	_msgpack struct{} `msgpack:",as_array"`
 
-	Kind      string    `json:"type",msgpack:"-"`
-	Timestamp time.Time `json:"timestamp",msgpack:"timestamp"`
-	Text      string    `json:"text",msgpack:"text"`
+	BasicMessage
+	Text string `json:"text",msgpack:"text"`
 }
 
 func (m *TextMessage) GetKind() string {
 	return "TextMessage"
+}
+func (m *TextMessage) GetSource() string {
+	return m.Source
 }
 func (m *TextMessage) GetTimestamp() time.Time {
 	return m.Timestamp
@@ -109,7 +122,7 @@ func (m *TextMessage) GetData() interface{} {
 }
 
 func (m *TextMessage) String() string {
-	return fmt.Sprintf("{ kind=\"%s\", timestamp=\"%s\", text=\"%v\"}", m.Kind, m.Timestamp, m.Text)
+	return fmt.Sprintf("{ kind=\"%s\", src=\"%s\", timestamp=\"%s\", text=\"%v\"}", m.Kind, m.Source, m.Timestamp, m.Text)
 }
 
 // region ~ decoders
@@ -122,20 +135,23 @@ func GobTextMessageDecoder(msg *nats.Msg) (Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	m.Source = msg.Subject
 	return &m, nil
 }
 func MsgPackTextMessageDecoder(msg *nats.Msg) (Message, error) {
-	var v TextMessage
-	err := msgpack.Unmarshal(msg.Data, &v)
-	return &v, err
+	var m TextMessage
+	err := msgpack.Unmarshal(msg.Data, &m)
+	m.Source = msg.Subject
+	return &m, err
 }
 func JsonTextMessageDecoder(msg *nats.Msg) (Message, error) {
-	var bm TextMessage
-	err := json.Unmarshal(msg.Data, &bm)
+	var m TextMessage
+	err := json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return nil, err
 	}
-	return &bm, nil
+	m.Source = msg.Subject
+	return &m, nil
 }
 
 // endregion
@@ -145,22 +161,26 @@ func JsonTextMessageDecoder(msg *nats.Msg) (Message, error) {
 
 func NewObjectMessage(object map[string]any) Message {
 	return &ObjectMessage{
-		Kind:      "ObjectMessage",
-		Timestamp: time.Now(),
-		Object:    object,
+		BasicMessage: BasicMessage{
+			Kind:      "ObjectMessage",
+			Timestamp: time.Now(),
+		},
+		Object: object,
 	}
 }
 
 type ObjectMessage struct {
 	_msgpack struct{} `msgpack:",as_array"`
 
-	Kind      string         `json:"type",msgpack:"-"`
-	Timestamp time.Time      `json:"timestamp",msgpack:"timestamp"`
-	Object    map[string]any `json:"object",msgpack:"object"`
+	BasicMessage
+	Object map[string]any `json:"object",msgpack:"object"`
 }
 
 func (m *ObjectMessage) GetKind() string {
 	return "ObjectMessage"
+}
+func (m *ObjectMessage) GetSource() string {
+	return m.Source
 }
 func (m *ObjectMessage) GetTimestamp() time.Time {
 	return m.Timestamp
@@ -170,7 +190,7 @@ func (m *ObjectMessage) GetData() interface{} {
 }
 
 func (m *ObjectMessage) String() string {
-	return fmt.Sprintf("{ kind=\"%s\", timestamp=\"%s\", object=%v}", m.Kind, m.Timestamp, m.Object)
+	return fmt.Sprintf("{ kind=\"%s\", src=\"%s\", timestamp=\"%s\", object=%v}", m.Kind, m.Source, m.Timestamp, m.Object)
 }
 
 // region ~ decoders
@@ -183,20 +203,23 @@ func GobObjectMessageDecoder(msg *nats.Msg) (Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	m.Source = msg.Subject
 	return &m, nil
 }
 func MsgPackObjectMessageDecoder(msg *nats.Msg) (Message, error) {
-	var v ObjectMessage
-	err := msgpack.Unmarshal(msg.Data, &v)
-	return &v, err
+	var m ObjectMessage
+	err := msgpack.Unmarshal(msg.Data, &m)
+	m.Source = msg.Subject
+	return &m, err
 }
 func JsonObjectMessageDecoder(msg *nats.Msg) (Message, error) {
-	var bm ObjectMessage
-	err := json.Unmarshal(msg.Data, &bm)
+	var m ObjectMessage
+	err := json.Unmarshal(msg.Data, &m)
 	if err != nil {
 		return nil, err
 	}
-	return &bm, nil
+	m.Source = msg.Subject
+	return &m, nil
 }
 
 // endregion
