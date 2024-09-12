@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect

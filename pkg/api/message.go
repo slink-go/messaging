@@ -3,8 +3,8 @@ package api
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
+	"github.com/goccy/go-json"
 	"github.com/nats-io/nats.go"
 	"github.com/vmihailenco/msgpack/v5"
 	"time"

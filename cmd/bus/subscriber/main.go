@@ -16,39 +16,7 @@ const topic = "q1"
 func main() {
 
 	os.Setenv("GO_ENV", "dev")
-	c := adapter.NewNatsClient(api.EncodingString)
-
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "BasicMessage",
-	//	Encoding:    api.EncodingJson,
-	//	Handler:     api.JsonBasicMessageDecoder,
-	//})
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "BasicMessage",
-	//	Encoding:    api.EncodingMsgPack,
-	//	Handler:     api.MsgPackBasicMessageDecoder,
-	//})
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "BasicMessage",
-	//	Encoding:    api.EncodingGob,
-	//	Handler:     api.GobBasicMessageDecoder,
-	//})
-	//
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "TextMessage",
-	//	Encoding:    api.EncodingJson,
-	//	Handler:     api.JsonTextMessageDecoder,
-	//})
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "TextMessage",
-	//	Encoding:    api.EncodingMsgPack,
-	//	Handler:     api.MsgPackTextMessageDecoder,
-	//})
-	//c.AddMessageDecoder(adapter.MessageDecoder{
-	//	MessageType: "TextMessage",
-	//	Encoding:    api.EncodingGob,
-	//	Handler:     api.GobTextMessageDecoder,
-	//})
+	c := adapter.NewNatsClient()
 
 	c.Connect()
 	defer c.Close()

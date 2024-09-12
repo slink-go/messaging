@@ -16,14 +16,17 @@ func main() {
 
 	os.Setenv("GO_ENV", "dev")
 
-	c := nats.NewNatsClient(api.EncodingGob)
+	c := nats.NewNatsClient()
 	c.Connect()
 	defer c.Close()
 
 	b := nats.NewMessageBus(c)
+	tm := time.NewTicker(1500 * time.Millisecond)
 	for {
-		time.Sleep(2 * time.Second)
-		publish(b)
+		select {
+		case <-tm.C:
+			go publish(b)
+		}
 	}
 
 }

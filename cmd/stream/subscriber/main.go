@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"github.com/nats-io/nats.go"
 	"github.com/slink-go/logging"
 	adapter "github.com/slink-go/messaging/pkg/adapter/nats"
