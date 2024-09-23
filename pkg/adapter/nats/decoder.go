@@ -18,7 +18,7 @@ func (d *Decoder) Decode(msg *nats.Msg, decoders MessageHandlers) (api.Message, 
 
 	t := msg.Header.Get(msgTypeHeader)
 	if t == "" {
-		return nil, errors.New("message type is missing")
+		return nil, fmt.Errorf("message type is missing: %v", string(msg.Data))
 	}
 
 	switch encoding {
