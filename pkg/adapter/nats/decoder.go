@@ -21,13 +21,21 @@ func (d *Decoder) Decode(msg *nats.Msg, decoders MessageHandlers) (api.Message, 
 		return nil, fmt.Errorf("message type is missing: %v", string(msg.Data))
 	}
 
-	switch encoding {
-	default:
-		key := encoding.String() + ":" + t
-		dec, ok := decoders[key]
-		if !ok {
-			return nil, fmt.Errorf("no '%s' decoder specified for message type '%s'", encoding, t)
-		}
-		return dec(msg)
+	dec, err := d.getDecoder(encoding, t, decoders)
+	if err != nil {
+		return nil, err
 	}
+	return dec(msg)
+}
+
+func (d *Decoder) getDecoder(encoding api.Encoding, msgType string, decoders MessageHandlers) (MessageDecoderFunc, error) {
+	dec, ok := decoders[encoding.String()+":"+msgType]
+	if ok {
+		return dec, nil
+	}
+	dec, ok = decoders[encoding.String()+":*"]
+	if ok {
+		return dec, nil
+	}
+	return nil, fmt.Errorf("no '%s' decoder specified for message type '%s'", encoding, msgType)
 }
