@@ -141,6 +141,16 @@ func (c *Client) Close() {
 func (c *Client) AddMessageDecoder(handler MessageDecoder) {
 	c.messageHandlers[handler.key()] = handler.Handler
 }
+func (c *Client) Healthy() bool {
+	//DISCONNECTED = Status(iota)
+	//CONNECTED
+	//CLOSED
+	//RECONNECTING
+	//CONNECTING
+	//DRAINING_SUBS
+	//DRAINING_PUBS
+	return c.conn.Status() == nats.CONNECTED
+}
 
 func (c *Client) encode(topic string, message api.Message, encoding api.Encoding) (*nats.Msg, error) {
 	return c.encoder.Encode(topic, message)
