@@ -122,13 +122,19 @@ func getEncoder(encoding api.Encoding) Encoder {
 }
 
 func (c *Client) Connect() error {
-	nc, err := nats.Connect(c.url)
+	nc, err := nats.Connect(c.url, nats.MaxReconnects(-1)) // TODO: accept connection arguments
 	if err != nil {
 		return err
 	}
 	c.conn = nc
+	nc.SetReconnectHandler(func(cc *nats.Conn) {
+		c.logger.Info("reconnect: %v", cc.ConnectedAddr())
+	})
+	nc.SetDisconnectErrHandler(func(cc *nats.Conn, err error) {
+		c.logger.Info("disconnect: %v %v", cc.ConnectedAddr(), err)
+	})
 	nc.SetClosedHandler(func(cc *nats.Conn) {
-		c.logger.Info("connection closed: %v", cc)
+		c.logger.Info("connection closed: %v", cc.ConnectedAddr())
 	})
 	return nil
 }
