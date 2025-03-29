@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/slink-go/messaging/pkg/api"
+	"go.slink.ws/messaging/pkg/api"
 )
 
 type Decoder struct {

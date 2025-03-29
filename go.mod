@@ -1,12 +1,14 @@
-module github.com/slink-go/messaging
+module go.slink.ws/messaging
 
-go 1.23.1
+go 1.24.0
+
+toolchain go1.24.1
 
 require (
 	github.com/goccy/go-json v0.10.3
 	github.com/nats-io/nats.go v1.37.0
-	github.com/slink-go/logging v0.0.2
 	github.com/vmihailenco/msgpack/v5 v5.4.1
+	go.slink.ws/logging v0.0.5
 )
 
 require (

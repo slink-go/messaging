@@ -1,6 +1,6 @@
 package nats
 
-import "github.com/slink-go/messaging/pkg/api"
+import "go.slink.ws/messaging/pkg/api"
 
 func validateClient(client Client) error {
 	if client.conn == nil {

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/slink-go/logging"
-	"github.com/slink-go/messaging/pkg/adapter/nats"
-	"github.com/slink-go/messaging/pkg/api"
+	"go.slink.ws/logging"
+	"go.slink.ws/messaging/pkg/adapter/nats"
+	"go.slink.ws/messaging/pkg/api"
 	"os"
 	"time"
 )

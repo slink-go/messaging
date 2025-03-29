@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/nats-io/nats.go"
-	"github.com/slink-go/messaging/pkg/api"
 	"github.com/vmihailenco/msgpack/v5"
+	"go.slink.ws/messaging/pkg/api"
 )
 
 type Encoder interface {

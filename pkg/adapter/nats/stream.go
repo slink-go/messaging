@@ -3,8 +3,8 @@ package nats
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
-	"github.com/slink-go/logging"
-	"github.com/slink-go/messaging/pkg/api"
+	"go.slink.ws/logging"
+	"go.slink.ws/messaging/pkg/api"
 )
 
 type NatMessageStream struct {

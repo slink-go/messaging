@@ -1,8 +1,8 @@
 package nats
 
 import (
-	"github.com/slink-go/logging"
-	"github.com/slink-go/messaging/pkg/api"
+	"go.slink.ws/logging"
+	"go.slink.ws/messaging/pkg/api"
 )
 
 func NewMessageBus(client Client) api.MessageBus {
